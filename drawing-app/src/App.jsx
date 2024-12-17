@@ -24,6 +24,10 @@ function App() {
 
   },[])
 
+  const reloadPage = () => {
+    window.location.reload()
+  }
+
   const getMousePosition = (event) =>{
 
     const rect = canvasRef.current.getBoundingClientRect();
@@ -58,7 +62,11 @@ function App() {
 
   return (
     <>
-      <canvas 
+    <div style={{display:'flex', margin:'2px', alignItems:'center', justifyContent:'center'}}>
+      <h1 style={{textAlign:'center', fontFamily:'monospace', fontWeight:'lighter'}}>Start Drawing!</h1>
+      <button style={{padding:'2px', margin:'5px', textAlign:'center', width:'100px', height:'30px', backgroundColor:'white', border:'1px solid black',borderRadius:'25px'}} onClick={reloadPage}>Clear Canvas </button>
+    </div>  
+    <canvas 
         onMouseDown={startDrawing}
         onMouseUp={finishDrawing}
         onMouseMove={draw}
