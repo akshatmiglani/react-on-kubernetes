@@ -49,15 +49,15 @@ aws configure
 ```
 
 ```bash
-eksctl create cluster –-name drawing-app-cluster -–region ap-south-1 --fargate
+eksctl create cluster –-name drawing-app-cluster --region ap-south-1 --fargate
 ```
 
 ```bash
-aws eks update-kubeconfig -–name drawing-app-cluster –-region ap-south-1     
+aws eks update-kubeconfig --name drawing-app-cluster --region ap-south-1     
 ```
 
 ```bash
-eksctl create fargateprofile --cluster drawing-app-cluster –-region ap-south-1 –-name demo-fargate -–namespace app-whiteboard
+eksctl create fargateprofile --cluster drawing-app-cluster --region ap-south-1 --name demo-fargate --namespace app-whiteboard
 ```
 
 ```bash
@@ -69,15 +69,15 @@ kubectl get pods -n app-whiteboard
 ```
 
 ```bash
-kubectl get svc -n app-whiteboard (it has cluster-ip, no external-ip)
+kubectl get svc -n app-whiteboard #(it has cluster-ip, no external-ip)
 ```
 
 ```bash
-kubectl get ingress -n app-whiteboard (class – alb, hosts *, address ?? , port)
+kubectl get ingress -n app-whiteboard #(class – alb, hosts *, address ?? , port)
 ```
 
 ```bash
-eksctl utils associate-iam-oidc-provider -–cluster app-whiteboard -–approve
+eksctl utils associate-iam-oidc-provider --cluster drawing-app-cluster --approve
 ```
 
 ```bash
@@ -89,7 +89,7 @@ aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-
 ```
 
 ```bash
-eksctl create iamserviceaccount --cluster=drawing-app-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your-aws-account-id>:policy/AWSLoadBalancerControllerIAMPolicy --approve
+eksctl create iamserviceaccount --cluster=drawing-app-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::668371971994:policy/AWSLoadBalancerControllerIAMPolicy --approve
 ```
 
 ```bash
@@ -101,15 +101,15 @@ helm repo update eks
 ```
 
 ```bash
-helm install aws-load-balancer-controller eks/aws-load-balancer-controller     -n kube-system --set clusterName=drawing-app-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller --set region=ap-south-1 --set vpcId=<your-vpc-id>
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller  -n kube-system --set clusterName=drawing-app-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller --set region=ap-south-1 --set vpcId=<your:vpc:id>
 ```
 
 ```bash
-kubectl get deployment -n kube-system aws-load-balancer-controller
+kubectl get deployment -n kube-system 
 ```
 
 ```bash
-kubectl get pods 
+kubectl get pods -n kube-system
 ```
 
 ```bash

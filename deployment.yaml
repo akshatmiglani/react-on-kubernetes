@@ -10,19 +10,19 @@ metadata:
   namespace: app-whiteboard
   name: deployment-app-whiteboard
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: react-whiteboard
-  replicas: 3
   template:
     metadata:
       labels:
         app.kubernetes.io/name: react-whiteboard
     spec:
       containers:
-      - image: akshatmiglani/react-drawing:latest
+      - name: react-whiteboard
+        image: akshatmiglani/react-drawing:latest
         imagePullPolicy: Always
-        name: react-whiteboard
         ports:
         - containerPort: 5173
 ---
@@ -33,10 +33,8 @@ metadata:
   name: service-app-whiteboard
 spec:
   ports:
-    - port: 5001
-      targetPort: 5173
-      protocol: TCP
-  type: NodePort
+  - port: 80
+    targetPort: 5173
   selector:
     app.kubernetes.io/name: react-whiteboard
 ---
@@ -48,15 +46,16 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
 spec:
   ingressClassName: alb
   rules:
-    - http:
-        paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: service-app-whiteboard
-              port:
-                number: 5001
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-app-whiteboard
+            port:
+              number: 80
