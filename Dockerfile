@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20 AS build
 
 WORKDIR /drawing-app
 
@@ -8,6 +8,12 @@ RUN npm install
 
 COPY drawing-app/ ./
 
-EXPOSE 5173
+RUN npm run build
 
-CMD ["npm","run","dev","--","--host","0.0.0.0"]
+FROM nginx:1.21.5-alpine as release
+
+COPY --from=build /drawing-app/build /usr/share/nginx/html/
+
+EXPOSE 80
+
+CMD ["nginx","-g","daemon off;"]

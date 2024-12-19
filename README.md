@@ -49,7 +49,7 @@ aws configure
 ```
 
 ```bash
-eksctl create cluster –-name drawing-app-cluster --region ap-south-1 --fargate
+eksctl create cluster --name drawing-app-cluster --region ap-south-1 --fargate
 ```
 
 ```bash
@@ -89,7 +89,7 @@ aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-
 ```
 
 ```bash
-eksctl create iamserviceaccount --cluster=drawing-app-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::668371971994:policy/AWSLoadBalancerControllerIAMPolicy --approve
+eksctl create iamserviceaccount --cluster=drawing-app-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your:account:id>:policy/AWSLoadBalancerControllerIAMPolicy --approve
 ```
 
 ```bash
