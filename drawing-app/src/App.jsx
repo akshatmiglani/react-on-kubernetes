@@ -5,6 +5,8 @@ function App() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
   const [isDrawing,setIsDrawing] = useState(false); 
+  const [color,setColor]=useState('black');
+  const [isEraserActive, setIsEraserActive] = useState(false);
 
   const scaleFactor = 2;
 
@@ -18,8 +20,8 @@ function App() {
     const context = canvas.getContext("2d")
     context.scale(scaleFactor,scaleFactor);
     context.lineCap="round"
-    context.strokeStyle = "black"
-    context.lineWidh=5;
+    context.strokeStyle = color;
+    context.lineWidth=5;
     contextRef.current = context;
 
   },[])
@@ -55,9 +57,20 @@ function App() {
     }
   
     const {x, y} = getMousePosition(event);
+    contextRef.current.strokeStyle = isEraserActive ? 'white':color;
+    contextRef.current.lineWidth= isEraserActive ? 20:5;
     contextRef.current.lineTo(x,y);
     contextRef.current.stroke();  
  
+  }
+
+  const activateEraser=()=>{
+    setIsEraserActive(true);
+  }
+
+  const activateColor=(newColor)=>{
+    setIsEraserActive(false);
+    setColor(newColor);
   }
 
   return (
@@ -65,6 +78,17 @@ function App() {
     <div style={{display:'flex', margin:'2px', alignItems:'center', justifyContent:'center'}}>
       <h1 style={{textAlign:'center', fontFamily:'monospace', fontWeight:'lighter'}}>Start Drawing!</h1>
       <button style={{padding:'2px', margin:'5px', textAlign:'center', width:'100px', height:'30px', backgroundColor:'white', border:'1px solid black',borderRadius:'25px'}} onClick={reloadPage}>Clear Canvas </button>
+
+      <div style={{display: 'flex', flexDirection:'flex-row', marginLeft:'10px',gap:'5px'}}>
+        <button style={{padding:'15px', backgroundColor:'black'}} onClick={()=>activateColor('black')}></button>
+        <button style={{padding:'15px', backgroundColor:'red'}} onClick={()=>activateColor('red')}></button>
+        <button style={{padding:'15px', backgroundColor:'blue'}} onClick={()=>activateColor('blue')}></button>
+        <button style={{padding:'15px', backgroundColor:'green'}} onClick={()=>activateColor('green')}></button>
+
+        <button style={{padding:'10px',marginLeft:'10px',backgroundColor:'lightgray',border:'1px solid black', borderRadius:'5px',cursor:'pointer'}} onClick={activateEraser}>Eraser</button>
+        <input type='color' value={color} onChange={(e)=> activateColor(e.target.value)} style={{marginLeft:'10px', width:'40px',height:'40px', border:'none', cursor:'pointer'}} />
+      
+      </div>
     </div>  
     <canvas 
         onMouseDown={startDrawing}
