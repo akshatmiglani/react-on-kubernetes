@@ -24,7 +24,7 @@ spec:
         image: akshatmiglani/react-drawing:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 5173
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -34,7 +34,7 @@ metadata:
 spec:
   ports:
   - port: 80
-    targetPort: 5173
+    targetPort: 80
   selector:
     app.kubernetes.io/name: react-whiteboard
 ---

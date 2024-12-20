@@ -43,78 +43,159 @@ Ingress Controller routes external traffic to Kubernetes services. The AWS Load 
 
 OIDC is an authentication protocol for securely verifying user identities. AWS uses OIDC to provide secure access to EKS and other AWS services.
 
+## Implementation
 
+1. Configure AWS credentials in your environemnt.
 ```bash
 aws configure
 ```
+Required details include 
+- AWS Access Key ID
+- AWS Secret Access Key
+- Default Region
+- Output Format.
+
+
+2. Create an EKS Cluster with Fargate
 
 ```bash
 eksctl create cluster --name drawing-app-cluster --region ap-south-1 --fargate
 ```
 
+- cluster_name is 'drawing-app'
+- region is 'ap-south-1'
+- farage allows to run compute nodes in serverless environements
+
+![Image of Created Cluster](image/2-1.png)
+
+![Image of Fargate](image/2-2.png)
+
+![Image of Stack created](image/2-3.png)
+
+3. Configuring Kubecl
+
 ```bash
 aws eks update-kubeconfig --name drawing-app-cluster --region ap-south-1     
 ```
+
+- To interact with created EKS cluster, update the local kubeconfig file.
+
+
+4. Create a new fargate profile to schedule pods in specific namespace.
 
 ```bash
 eksctl create fargateprofile --cluster drawing-app-cluster --region ap-south-1 --name demo-fargate --namespace app-whiteboard
 ```
 
+- farage profile is demo-fargate
+- namespace is app-whiteboard.
+
+![Image of Newly created Fargate Profile](image/4-1.png)
+
+5. Deploy your Application
+
 ```bash
 kubectl apply -f deployment.yaml
 ```
+
+This file defines the 
+- Deployment: 3 Replicas of React applicatiopn
+- Service: A clusterIP service that exposes port 80
+- Ingress : Configuration for AWS ALB Ingress Controller
+
+6. Verify pods and services.
+
+- Check the pods
 
 ```bash
 kubectl get pods -n app-whiteboard
 ```
 
-```bash
-kubectl get svc -n app-whiteboard #(it has cluster-ip, no external-ip)
-```
+![Image of Deployments](image/6-1.png)
+
+- Check the service
 
 ```bash
-kubectl get ingress -n app-whiteboard #(class – alb, hosts *, address ?? , port)
+kubectl get svc -n app-whiteboard 
 ```
+
+![Image of Service](image/6-2.png)
+
+The service has ClusterIP and no external IP initially.
+
+- Check the ingress
+
+```bash
+kubectl get ingress -n app-whiteboard 
+```
+
+![Image of Ingress](image/6-3.png)
+
+At this moment, ALB is created but address is not listed.
+
+7. Enable IAM OIDC Provider for EKS
+
+Associate the IAM OIDC provider with the EKS cluster to allow AWS services to authenticate Kubernetes pods:
 
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster drawing-app-cluster --approve
 ```
 
-```bash
-curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
-```
+8. Configuring AWS Load Balancer Controller
+
+- Use the IAM policy json in current repository to create a new IAM Policy 
 
 ```bash
 aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
 ```
 
+- Create a IAM Service Account for the ALB Controller in the kube-system namespace
+
 ```bash
 eksctl create iamserviceaccount --cluster=drawing-app-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your:account:id>:policy/AWSLoadBalancerControllerIAMPolicy --approve
 ```
 
-```bash
-helm repo add eks https://aws.github.io/eks-charts
-```
+- Add the Helm repo for AWS Load Balancer Controller
 
 ```bash
+helm repo add eks https://aws.github.io/eks-charts
 helm repo update eks
 ```
+
+- Install the AWS Load Balancer Controller
 
 ```bash
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller  -n kube-system --set clusterName=drawing-app-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller --set region=ap-south-1 --set vpcId=<your:vpc:id>
 ```
 
+![Image of Created ALB](image/8-1.png)
+
+9. Verify Controller Installation
+
+- Check deployment
+
 ```bash
 kubectl get deployment -n kube-system 
 ```
+
+- Check Pods
 
 ```bash
 kubectl get pods -n kube-system
 ```
 
+- Check ingress to confirm the ALB is successfully created.
+
 ```bash
 kubectl get ingress -n app-whiteboard
 ```
+
+![Image of Ingress Controller Address](image/9-1.png)
+
+
+10. Access the Application by accesssing the ALB DNS name provided in the Ingress.
+
+![Image of Accessing the Application](image/10-1.png)
 
 ## Links for Tools
 
@@ -125,3 +206,32 @@ Kubectl: https://kubernetes.io/docs/reference/kubectl/
 AWS CLI: https://aws.amazon.com/cli/
 
 EKSCTL: https://eksctl.io/installation/
+
+## Additional Commands Used:
+
+To use the latest docker image:
+
+```bash
+kubectl rollout status deployment/deployment-app-whiteboard -n app-whiteboard
+```
+
+To delete the cluster
+
+
+```bash
+kubectl delete -f deployment.yaml
+
+kubectl delete namespace app-whiteboard
+
+eksctl delete fargateprofile --cluster drawing-app-cluster --region ap-south-1 --name demo-fargate
+
+eksctl delete cluster --name drawing-app-cluster --region ap-south-1
+```
+
+To create the docker image
+
+```bash
+docker build -t DOCKER_USERNAME/react-drawing .
+
+docker push DOCKER_USERNAME/react-drawing
+```
