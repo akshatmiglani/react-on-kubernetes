@@ -1,5 +1,9 @@
 # react-on-kubernetes
 
+Full playlist for this project:
+
+https://www.youtube.com/playlist?list=PLImBl83-yYwoIKVY4fU4X8wl3c5XPLjyD
+
 This project focuses on deploying a React-based whiteboard application to Amazon Elastic Kubernetes Service (EKS). The goal is to create a scalable and reliable deployment using Kubernetes orchestration managed on AWS infrastructure. The aim is to successfully configure load balancing, ingress and security mechanisms.
 
 ## Project Objectives
